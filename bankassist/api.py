@@ -3,11 +3,12 @@ from pathlib import Path
 from fastapi import FastAPI, Depends, HTTPException, status
 from bankassist.core import BankAssistant, KeywordRetriever, ExtractiveGenerator, Document
 from bankassist.schemas import ChatRequest, ChatResponse
-
+from bankassist.session import InMemorySessionStore
 
 app = FastAPI(title="BankAssistant API", version="0.1.0")
 
-
+# Global singleton session store for this API instance
+GLOBAL_SESSION_STORE = InMemorySessionStore(max_turns=6)
 
 def load_default_documents() -> list[Document]:
     policy_path = Path(__file__).resolve().parent.parent / "data" / "policies.json"
@@ -22,7 +23,7 @@ def get_assistant()->BankAssistant:
     documents = load_default_documents()
     retriever = KeywordRetriever(documents)
     generator = ExtractiveGenerator()
-    return BankAssistant(retriever, generator)
+    return BankAssistant(retriever, generator, session_store=GLOBAL_SESSION_STORE)
 
 
 @app.post("/chat")
@@ -35,7 +36,12 @@ async def chat_endpoint(
         return ChatResponse(
             answer = result.text,
             sources= list(result.sources),
-            session_id= request.session_id
+            session_id= request.session_id,
+            model_id = result.model_id,
+            prompt_version = result.prompt_version,
+            input_tokens = result.input_tokens,
+            output_tokens = result.output_tokens,
+            latency_ms = result.latency_ms,
         )
     except ValueError as e:
         raise HTTPException(

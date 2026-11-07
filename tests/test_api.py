@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from bankassist.api import app, get_assistant
 from bankassist.core import BankAssistant, Document, Answer
+from bankassist.session import Message
 
 client = TestClient(app)
 
@@ -14,7 +15,7 @@ class FakeRetriever:
 
 
 class FakeGenerator:
-    def generate(self, question: str, documents: list[Document]) -> str:
+    def generate(self, question: str, documents: list[Document],  history: list[Message] | None = None,) -> str:
         return f"Mock reply based on {len(documents)} docs."
 
 

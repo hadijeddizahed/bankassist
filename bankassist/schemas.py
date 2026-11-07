@@ -9,3 +9,8 @@ class ChatResponse(BaseModel):
     answer: str
     sources: list[str]
     session_id: str | None = None
+    model_id: str | None = None
+    prompt_version: str | None = None
+    input_tokens: int = 0
+    output_tokens: int = 0
+    latency_ms: float = 0.0
