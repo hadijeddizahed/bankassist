@@ -1,6 +1,74 @@
 [
-  {"id":"POL-001","text":"Fictional BankAssist policy: Report a lost or stolen card through the secure banking app or contact support. This demo cannot freeze a card."},
-  {"id":"POL-002","text":"Fictional BankAssist policy: The Demo Basic account has a monthly maintenance fee of 4 demo credits. The Demo Student account has no monthly maintenance fee."},
-  {"id":"POL-003","text":"Fictional BankAssist policy: To dispute a transaction, contact support through the secure app. Never provide a password or full card number in this demo."},
-  {"id":"POL-004","text":"Fictional BankAssist policy: Address changes require authentication in the secure app. This assistant can explain the process but cannot change an address."}
+  {
+    "id": "POL-001",
+    "category": "cards",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Report a lost or stolen card through the secure banking app or contact support. This demo cannot freeze a card."
+  },
+  {
+    "id": "POL-002",
+    "category": "accounts",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: The Demo Basic account has a monthly maintenance fee of 4 demo credits. The Demo Student account has no monthly maintenance fee."
+  },
+  {
+    "id": "POL-003",
+    "category": "disputes",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: To dispute a transaction, contact support through the secure app within 60 days of the statement date. Never provide a password or full card number in this demo."
+  },
+  {
+    "id": "POL-004",
+    "category": "profile",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Address changes require authentication in the secure app. This assistant can explain the process but cannot change an address."
+  },
+  {
+    "id": "POL-005",
+    "category": "transfers",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Domestic wire transfers submitted before 2:00 PM EST are processed on the same business day for a fee of 15 demo credits. International wires take 2-3 business days."
+  },
+  {
+    "id": "POL-006",
+    "category": "overdraft",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Overdraft protection automatically transfers funds from a linked savings account in 100-credit increments. Each overdraft transfer has a 5-credit fee."
+  },
+  {
+    "id": "POL-007",
+    "category": "cards",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Card replacements for damaged cards arrive in 3 to 5 business days via standard mail. Expedited 1-day shipping costs 10 demo credits."
+  },
+  {
+    "id": "POL-008",
+    "category": "travel",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Travel notices are not required before using your debit card abroad, but keeping contact details updated prevents automated security holds."
+  },
+  {
+    "id": "POL-009",
+    "category": "savings",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: The Demo High-Yield Savings account requires a minimum daily balance of 500 demo credits to earn the advertised promotional interest rate."
+  },
+  {
+    "id": "POL-010",
+    "category": "business",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Business checking accounts allow up to 200 free transactions per monthly statement cycle. Subsequent transactions cost 0.50 demo credits each."
+  },
+  {
+    "id": "POL-011",
+    "category": "statements",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Electronic statements (e-statements) are free and retained online for up to 7 years. Paper statements cost 2 demo credits per monthly mailing."
+  },
+  {
+    "id": "POL-012",
+    "category": "security",
+    "version": "1.0",
+    "text": "Fictional BankAssist policy: Bank employees will never ask for your one-time passcode (OTP), ATM PIN, or full password via phone, email, or chat."
+  }
 ]
