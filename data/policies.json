@@ -1,0 +1,6 @@
+[
+  {"id":"POL-001","text":"Fictional BankAssist policy: Report a lost or stolen card through the secure banking app or contact support. This demo cannot freeze a card."},
+  {"id":"POL-002","text":"Fictional BankAssist policy: The Demo Basic account has a monthly maintenance fee of 4 demo credits. The Demo Student account has no monthly maintenance fee."},
+  {"id":"POL-003","text":"Fictional BankAssist policy: To dispute a transaction, contact support through the secure app. Never provide a password or full card number in this demo."},
+  {"id":"POL-004","text":"Fictional BankAssist policy: Address changes require authentication in the secure app. This assistant can explain the process but cannot change an address."}
+]

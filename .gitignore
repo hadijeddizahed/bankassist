@@ -1,0 +1,32 @@
+# Environments & Virtual Envs
+.venv/
+.venv*/
+env/
+venv/
+ENV/
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# IDEs & OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Sensitive files & credentials (NEVER commit keys)
+*accessKeys*.csv
+*.pem
+*.key
+.env
+.env.*
+!.env.example
