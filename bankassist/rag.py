@@ -45,11 +45,11 @@ class RAGPipeline:
             return question
 
         q_lower = question.lower()
-        follow_up_triggers = ["it", "that", "this", "they", "them", "what about", "how about", "and ", "one"]
+        follow_up_triggers = ["it", "that", "this", "they", "them", "what about", "how about", "and ", "one", "faster", "window"]
         if any(trigger in q_lower for trigger in follow_up_triggers):
             for prev in reversed(history):
                 if prev.role == "user":
-                    return f"{question} (context: {prev.text})"
+                    return f"{prev.text} {question}"
 
         return question
 
@@ -64,7 +64,7 @@ class RAGPipeline:
 
         # Contextualize query with conversation history before vector search
         search_query = self.contextualize_query(cleaned, history)
-        documents = self.retriever.retrieve(search_query)
+        documents = self.retriever.retrieve(search_query, top_k=3)
         retrieved_ids = tuple(d.id for d in documents)
 
         # 2. If no documents pass similarity threshold, abstain immediately
