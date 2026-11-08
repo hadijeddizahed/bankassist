@@ -60,3 +60,21 @@ def test_unsupported_questions_abstain_cleanly():
         assert result.is_abstention, f"Expected abstention for '{question}', got: {result.text}"
         assert result.cited_sources == ()
         assert ABSTENTION_MESSAGE.lower() in result.text.lower()
+
+
+def test_multi_turn_conversational_contextualization():
+    from bankassist.session import InMemorySessionStore
+
+    rag = get_rag_pipeline()
+    store = InMemorySessionStore(max_turns=6)
+    rag.session_store = store
+    session_id = "user_chat_1"
+
+    # Turn 1: Ask about basic account
+    r1 = rag.run("What is the basic account monthly fee?", session_id=session_id)
+    assert "POL-002" in r1.cited_sources
+
+    # Turn 2: Follow-up relying on Turn 1 context!
+    r2 = rag.run("And what about the student account?", session_id=session_id)
+    assert "POL-002" in r2.retrieved_sources
+    assert not r2.is_abstention

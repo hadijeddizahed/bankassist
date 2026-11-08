@@ -36,6 +36,23 @@ class RAGPipeline:
         """Finds all occurrences of [POL-XXX] in the output text."""
         return sorted(list(set(re.findall(r"\[(POL-\d+)]", text))))
 
+    @staticmethod
+    def contextualize_query(question: str, history: list[Message]) -> str:
+        """If there is conversation history, contextualize pronouns/ellipses
+        into a standalone search query for the vector database.
+        """
+        if not history:
+            return question
+
+        q_lower = question.lower()
+        follow_up_triggers = ["it", "that", "this", "they", "them", "what about", "how about", "and ", "one"]
+        if any(trigger in q_lower for trigger in follow_up_triggers):
+            for prev in reversed(history):
+                if prev.role == "user":
+                    return f"{question} (context: {prev.text})"
+
+        return question
+
     def run(self, question: str, session_id: str | None = None) -> RAGResult:
         cleaned = question.strip()
         if not cleaned:
@@ -45,7 +62,9 @@ class RAGPipeline:
         if self.session_store and session_id:
             history = self.session_store.get_history(session_id)
 
-        documents = self.retriever.retrieve(cleaned)
+        # Contextualize query with conversation history before vector search
+        search_query = self.contextualize_query(cleaned, history)
+        documents = self.retriever.retrieve(search_query)
         retrieved_ids = tuple(d.id for d in documents)
 
         # 2. If no documents pass similarity threshold, abstain immediately
