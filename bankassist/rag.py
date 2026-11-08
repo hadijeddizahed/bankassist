@@ -26,10 +26,12 @@ class RAGPipeline:
             retriever: Retriever,
             generator: Any,
             session_store: SessionStore | None = None,
+            guardrail: Any | None = None,
     ):
         self.retriever = retriever
         self.generator = generator
         self.session_store = session_store
+        self.guardrail = guardrail
 
     @staticmethod
     def extract_citations(text: str) -> list[str]:
@@ -57,6 +59,20 @@ class RAGPipeline:
         cleaned = question.strip()
         if not cleaned:
             raise ValueError("Please enter a question.")
+
+        # Input guardrail check
+        if self.guardrail and hasattr(self.guardrail, "check_input"):
+            check = self.guardrail.check_input(cleaned)
+            if not check.is_safe:
+                return RAGResult(
+                    text=check.sanitized_text,
+                    retrieved_sources=(),
+                    cited_sources=(),
+                    is_abstention=True,
+                    model_id="guardrail-refusal",
+                    prompt_version="v1.0.0",
+                    latency_ms=0.0,
+                )
 
         history: list[Message] = []
         if self.session_store and session_id:
@@ -103,11 +119,18 @@ class RAGPipeline:
         cited = self.extract_citations(raw_text)
         # Ensure cited IDs actually exist in retrieved_ids
         valid_citations = tuple(c for c in cited if c in retrieved_ids)
+
+        # Output guardrail / PII redaction
+        final_text = raw_text
+        if self.guardrail and hasattr(self.guardrail, "sanitize_output"):
+            final_text = self.guardrail.sanitize_output(raw_text)
+
         if self.session_store and session_id:
             self.session_store.add_message(session_id, "user", cleaned)
-            self.session_store.add_message(session_id, "assistant", raw_text)
+            self.session_store.add_message(session_id, "assistant", final_text)
+
         return RAGResult(
-            text=raw_text,
+            text=final_text,
             retrieved_sources=retrieved_ids,
             cited_sources=valid_citations,
             is_abstention=is_abstention,
