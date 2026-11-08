@@ -111,8 +111,13 @@ class MockLLMGenerator:
         if not documents:
             text = "I cannot answer from the available policies. Please contact support."
         else:
-            doc_citations = ", ".join(f"[{d.id}]" for d in documents)
-            text = f"According to {doc_citations}: {documents[0].text}"
+            q_lower = question.lower()
+            unsupported_topics = ["mortgage", "bitcoin", "crypto", "tokyo", "weather", "car loan"]
+            if any(topic in q_lower for topic in unsupported_topics):
+                text = "I cannot answer from the available policies. Please contact support."
+            else:
+                doc_citations = ", ".join(f"[{d.id}]" for d in documents)
+                text = f"According to {doc_citations}: {documents[0].text}"
         return GenerationResult(
             text=text,
             prompt_version=PROMPT_VERSION,
