@@ -21,6 +21,13 @@ Rules:
 """
 
 
+@dataclass(frozen=True)
+class ToolCall:
+    tool_use_id: str
+    name: str
+    arguments: dict[str, Any]
+
+
 @dataclass
 class GenerationResult:
     text: str
@@ -29,6 +36,7 @@ class GenerationResult:
     output_tokens: int
     input_tokens: int
     latency_ms: int
+    tool_calls: tuple[ToolCall, ...] = ()
 
 class BedrockGenerator:
     """Real AWS Bedrock Converse API generator with timeout and token tracking."""
@@ -55,6 +63,7 @@ class BedrockGenerator:
             question: str,
             documents: list[Document],
             history: list[Message] | None = None,
+            tools: list[dict[str, Any]] | None = None,
     )-> GenerationResult:
         doc_context = "\n\n".join(
             f"Document ID: {doc.id}\nContent: {doc.text}" for doc in documents
@@ -74,26 +83,48 @@ class BedrockGenerator:
             "content": [{"text": user_message_with_context}],
         })
 
-        start_time = time.perf_counter()
-        response = self.client.converse(
-            modelId=self.model_id,
-            messages=messages,
-            system=[{"text": SYSTEM_PROMPT}],
-            inferenceConfig={
+        kwargs: dict[str, Any] = {
+            "modelId": self.model_id,
+            "messages": messages,
+            "system": [{"text": SYSTEM_PROMPT}],
+            "inferenceConfig": {
                 "temperature": 0.0,
                 "maxTokens": 500,
             },
-        )
+        }
+        if tools:
+            kwargs["toolConfig"] = {"tools": tools}
+
+        start_time = time.perf_counter()
+        response = self.client.converse(**kwargs)
         latency_ms = (time.perf_counter() - start_time) * 1000.0
-        output_text = response["output"]["message"]["content"][0]["text"]
+
+        message_content = response["output"]["message"]["content"]
+        text_chunks: list[str] = []
+        tool_calls: list[ToolCall] = []
+
+        for block in message_content:
+            if "text" in block:
+                text_chunks.append(block["text"])
+            elif "toolUse" in block:
+                tu = block["toolUse"]
+                tool_calls.append(
+                    ToolCall(
+                        tool_use_id=tu["toolUseId"],
+                        name=tu["name"],
+                        arguments=tu.get("input", {}),
+                    )
+                )
+
         usage = response.get("usage", {})
         return GenerationResult(
-            text=output_text,
+            text="\n".join(text_chunks),
             prompt_version=PROMPT_VERSION,
             model_id=self.model_id,
             input_tokens=usage.get("inputTokens", 0),
             output_tokens=usage.get("outputTokens", 0),
             latency_ms=round(latency_ms, 2),
+            tool_calls=tuple(tool_calls),
         )
 
 class MockLLMGenerator:
@@ -107,17 +138,41 @@ class MockLLMGenerator:
             question: str,
             documents: list[Document],
             history: list[Message] | None = None,
+            tools: list[dict[str, Any]] | None = None,
     ) -> GenerationResult:
-        if not documents:
+        tool_calls: list[ToolCall] = []
+        q_lower = question.lower()
+
+        # Check if tools are provided and if question matches tool intents
+        if tools and any(w in q_lower for w in ["balance", "funds", "how much money", "how much do i have"]):
+            account_type = "savings" if "savings" in q_lower else "checking"
+            tool_calls.append(
+                ToolCall(
+                    tool_use_id="call_balance_1",
+                    name="get_balance",
+                    arguments={"account_type": account_type},
+                )
+            )
+            text = "I am checking your account balance..."
+        elif tools and any(w in q_lower for w in ["transaction", "recent charge", "history"]):
+            tool_calls.append(
+                ToolCall(
+                    tool_use_id="call_tx_1",
+                    name="list_transactions",
+                    arguments={"limit": 5},
+                )
+            )
+            text = "I am fetching your recent transactions..."
+        elif not documents:
             text = "I cannot answer from the available policies. Please contact support."
         else:
-            q_lower = question.lower()
             unsupported_topics = ["mortgage", "bitcoin", "crypto", "tokyo", "weather", "car loan"]
             if any(topic in q_lower for topic in unsupported_topics):
                 text = "I cannot answer from the available policies. Please contact support."
             else:
                 doc_citations = ", ".join(f"[{d.id}]" for d in documents)
                 text = f"According to {doc_citations}: {documents[0].text}"
+
         return GenerationResult(
             text=text,
             prompt_version=PROMPT_VERSION,
@@ -125,5 +180,6 @@ class MockLLMGenerator:
             input_tokens=len(question.split()) * 2 + 50,
             output_tokens=len(text.split()) * 2,
             latency_ms=12.5,
+            tool_calls=tuple(tool_calls),
         )
 
